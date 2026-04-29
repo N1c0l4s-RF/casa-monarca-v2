@@ -40,6 +40,7 @@ export const documentos = {
 // USUARIOS
 export const usuarios = {
   list: () => apiFetch('/api/usuarios-list.php'),
+  create: (nombre, email, password, rol) => apiFetch('/api/usuarios-create.php', { method: 'POST', body: JSON.stringify({ nombre, email, password, rol }) }),
   cambiarRol: (usuario_id, rol) => apiFetch('/api/usuarios-cambiar-rol.php', { method: 'POST', body: JSON.stringify({ usuario_id, rol }) }),
   desactivar: (usuario_id) => apiFetch('/api/usuarios-desactivar.php', { method: 'POST', body: JSON.stringify({ usuario_id }) }),
   generarClaves: (usuario_id) => apiFetch('/api/usuarios-descargar-claves.php', { method: 'POST', body: JSON.stringify({ usuario_id }) }),

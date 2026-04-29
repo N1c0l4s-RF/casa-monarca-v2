@@ -94,9 +94,12 @@
 
     <!-- USUARIOS (admin) -->
     <section class="tab-section" id="tab-usuarios">
-      <div class="page-header">
-        <h1 class="page-title">Gestión de Usuarios</h1>
-        <p class="page-subtitle">Administra roles y accesos</p>
+      <div class="page-header flex gap-4" style="align-items:center;">
+        <div>
+          <h1 class="page-title">Gestión de Usuarios</h1>
+          <p class="page-subtitle">Administra roles y accesos</p>
+        </div>
+        <button class="btn btn-primary ml-auto" id="btn-nuevo-usuario">+ Nuevo usuario</button>
       </div>
       <div class="card">
         <div class="table-wrap" id="usuarios-table"></div>
@@ -139,6 +142,39 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" id="modal-doc-cancel">Cancelar</button>
       <button class="btn btn-primary" id="modal-doc-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo usuario -->
+<div class="modal-overlay hidden" id="modal-usuario">
+  <div class="modal">
+    <h3 class="modal-title">Crear nuevo usuario</h3>
+    <div class="form-group">
+      <label class="form-label">Nombre</label>
+      <input type="text" class="form-input" id="usuario-nombre" placeholder="Nombre completo" required />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="usuario-email" placeholder="email@empresa.local" required />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input type="password" class="form-input" id="usuario-password" placeholder="Mínimo 6 caracteres" required />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rol</label>
+      <select class="form-input" id="usuario-rol">
+        <option value="administrador">Administrador</option>
+        <option value="supervisor">Supervisor</option>
+        <option value="emisor">Emisor</option>
+        <option value="verificador">Verificador</option>
+        <option value="consultor">Consultor</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-usuario-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="modal-usuario-save">Crear usuario</button>
     </div>
   </div>
 </div>
@@ -358,12 +394,14 @@ window.eliminarDoc = (id) => showConfirm('¿Eliminar borrador?', 'Esta acción e
 });
 
 window.revocarDoc = (id) => {
+  document.getElementById('modal-confirm-title').textContent = '¿Revocar documento?';
+  document.getElementById('modal-confirm-msg').textContent = 'Ingresa el motivo de revocación:';
   document.getElementById('modal-confirm-extra').innerHTML = `
     <div class="form-group">
       <label class="form-label">Motivo de revocación</label>
       <input class="form-input" id="motivo-input" placeholder="Motivo..." />
     </div>`;
-  showConfirm('¿Revocar documento?', 'Ingresa el motivo de revocación:', async () => {
+  confirmCallback = async () => {
     const motivo = document.getElementById('motivo-input')?.value;
     if (!motivo) { toast('El motivo es requerido', 'error'); return; }
     try {
@@ -371,7 +409,8 @@ window.revocarDoc = (id) => {
       toast('Documento revocado', 'success');
       await loadDocs(); renderEmitidos();
     } catch (e) { toast(e.message, 'error'); }
-  });
+  };
+  document.getElementById('modal-confirm').classList.remove('hidden');
 };
 
 // ─── MODAL CONFIRMACIÓN ───
@@ -427,6 +466,40 @@ window.desactivarUser = (uid) => showConfirm('¿Desactivar usuario?', 'El usuari
 window.generarClaves = (uid) => showConfirm('¿Generar llaves RSA-3072?', 'Esto reemplazará las llaves actuales del usuario.', async () => {
   try { await usuarios.generarClaves(uid); toast('Llaves generadas', 'success'); }
   catch (e) { toast(e.message, 'error'); }
+});
+
+// ─── CREAR USUARIO ───
+document.getElementById('btn-nuevo-usuario').addEventListener('click', () => {
+  document.getElementById('usuario-nombre').value = '';
+  document.getElementById('usuario-email').value = '';
+  document.getElementById('usuario-password').value = '';
+  document.getElementById('usuario-rol').value = 'emisor';
+  document.getElementById('modal-usuario').classList.remove('hidden');
+});
+
+document.getElementById('modal-usuario-cancel').addEventListener('click', () => {
+  document.getElementById('modal-usuario').classList.add('hidden');
+});
+
+document.getElementById('modal-usuario-save').addEventListener('click', async () => {
+  const nombre = document.getElementById('usuario-nombre').value;
+  const email = document.getElementById('usuario-email').value;
+  const password = document.getElementById('usuario-password').value;
+  const rol = document.getElementById('usuario-rol').value;
+
+  if (!nombre || !email || !password) {
+    toast('Todos los campos son requeridos', 'error');
+    return;
+  }
+
+  try {
+    await usuarios.create(nombre, email, password, rol);
+    toast('Usuario creado exitosamente', 'success');
+    document.getElementById('modal-usuario').classList.add('hidden');
+    await loadUsuarios();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
 });
 
 // ─── LLAVES ───
