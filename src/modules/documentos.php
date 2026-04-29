@@ -118,7 +118,7 @@ function emitirDocumento(int $docId, int $usuarioId): void {
 
     $pdo->prepare('
         UPDATE documentos
-        SET estado = "emitido", firmado_por_usuario_id = ?, fecha_emision = NOW(), hash_sha256 = ?
+        SET estado = "emitido", firmado_por_usuario_id = ?, fecha_emision = NOW(), firma = ?
         WHERE id = ?
     ')->execute([$usuarioId, $firma, $docId]);
 

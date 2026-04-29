@@ -33,6 +33,7 @@ services:
     volumes:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./database/migration_001.sql:/docker-entrypoint-initdb.d/02-migration.sql
+      - ./database/migration_002.sql:/docker-entrypoint-initdb.d/03-migration.sql
       - db_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${DB_ROOT_PASS:-root_123}"]
