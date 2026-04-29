@@ -37,7 +37,7 @@ if ($doc['estado'] === 'emitido' && $doc['firmado_por_usuario_id']) {
     $publicKey = obtenerClavePublica((int)$doc['firmado_por_usuario_id']);
     if ($publicKey) {
         $contenidoFirmar = $doc['folio'] . '|' . $doc['contenido'];
-        $firmaValida = verificarFirma($contenidoFirmar, $doc['hash_sha256'], $publicKey);
+        $firmaValida = verificarFirma($contenidoFirmar, $doc['firma'], $publicKey);
         $mensajeFirma = $firmaValida ? 'Firma digital válida ✓' : 'Firma digital inválida ✗';
     }
 }
