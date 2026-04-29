@@ -18,7 +18,10 @@ RUN echo "session.gc_maxlifetime = 3600" >> /usr/local/etc/php/php.ini && \
 COPY .docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
 # Copiar código fuente
-COPY src/ /var/www/html/src/
+COPY src/auth/ /var/www/html/auth/
+COPY src/api/ /var/www/html/api/
+COPY src/config/ /var/www/html/config/
+COPY src/modules/ /var/www/html/modules/
 COPY frontend/ /var/www/html/
 
 # Permisos

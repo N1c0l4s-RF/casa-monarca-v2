@@ -7,7 +7,7 @@ INSERT INTO usuarios (nombre, email, password_hash, rol, activo)
 VALUES (
     'Administrador',
     'admin@empresa.local',
-    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2y$10$lvMB2zhRbYMGzkERcVkRc.IgTYtpVGJ0SLJLTkEedrmR12xenh9fO',
     'administrador',
     1
 ) ON DUPLICATE KEY UPDATE id=id;

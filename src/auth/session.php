@@ -5,6 +5,7 @@
 require_once __DIR__ . '/../auth/middleware.php';
 
 setSecurityHeaders();
+startSecureSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonError('Método no permitido', 405);

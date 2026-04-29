@@ -3,8 +3,10 @@
  * Casa Monarca v2 - Conexión a base de datos
  */
 
-function getEnv(string $key, string $default = ''): string {
-    return $_ENV[$key] ?? getenv($key) ?: $default;
+if (!function_exists('getEnv')) {
+    function getEnv(string $key, string $default = ''): string {
+        return $_ENV[$key] ?? getenv($key) ?: $default;
+    }
 }
 
 function getDB(): PDO {

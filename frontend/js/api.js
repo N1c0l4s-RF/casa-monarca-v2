@@ -2,7 +2,7 @@
  * Casa Monarca v2 - API Client
  */
 
-const BASE = '/src';
+const BASE = '';
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(BASE + path, {
