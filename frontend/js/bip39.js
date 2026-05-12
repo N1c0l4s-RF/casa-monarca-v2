@@ -147,28 +147,24 @@ function bytesToBigInt(bytes) {
 }
 
 /**
- * Genera 12 palabras BIP39 desde 128 bits de entropy aleatorio.
- * Entropy → SHA256 checksum → 132 bits → 12 grupos de 11 bits → 12 palabras
+ * Genera 12 palabras desde entropy seguro del navegador.
+ * Usa rejection sampling para obtener índices uniformes dentro del wordlist,
+ * evitando sesgo de módulo. Las mismas 12 palabras siempre producen la misma
+ * clave privada vía mnemonicToSeed().
  */
 export async function generarMnemonic() {
-  // 128 bits de entropy
-  const entropy = crypto.getRandomValues(new Uint8Array(16));
-
-  // SHA-256 del entropy para el checksum
-  const hashBuffer = await crypto.subtle.digest('SHA-256', entropy);
-  const checksum = new Uint8Array(hashBuffer)[0]; // solo el primer byte (4 bits de checksum)
-
-  // Concatenar entropy (128 bits) + checksum (4 bits) = 132 bits
-  // Representamos como un BigInt para facilitar la extracción de grupos de 11 bits
-  let bits = bytesToBigInt(entropy) << 4n | BigInt(checksum >> 4);
-
-  // Extraer 12 grupos de 11 bits (de derecha a izquierda)
+  const size = WORDLIST.length; // 1310 palabras
   const indices = [];
-  for (let i = 0; i < 12; i++) {
-    indices.unshift(Number(bits & 0x7FFn));
-    bits >>= 11n;
+  // Rejection sampling: genera pares de bytes hasta tener 12 índices sin sesgo
+  while (indices.length < 12) {
+    const buf = crypto.getRandomValues(new Uint16Array(12));
+    const limit = Math.floor(0x10000 / size) * size; // elimina sesgo de módulo
+    for (const v of buf) {
+      if (v < limit && indices.length < 12) {
+        indices.push(v % size);
+      }
+    }
   }
-
   return indices.map(i => WORDLIST[i]).join(' ');
 }
 
