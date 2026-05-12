@@ -950,7 +950,7 @@ window.switchView = (view) => {
 async function cargarInicio() {
   try {
     const res = await docsAPI.list();
-    allDocs = res.data || [];
+    allDocs = res.data?.documentos || res.data || [];
     const emitidos  = allDocs.filter(d => d.estado === 'emitido').length;
     const borradores= allDocs.filter(d => d.estado === 'borrador').length;
     const revocados = allDocs.filter(d => d.estado === 'revocado').length;
@@ -961,7 +961,7 @@ async function cargarInicio() {
 
     if (['administrador','supervisor'].includes(currentUser.rol)) {
       const usrs = await usersAPI.list();
-      document.getElementById('stat-usuarios').textContent = (usrs.data || []).length;
+      document.getElementById('stat-usuarios').textContent = (usrs.data?.usuarios || usrs.data || []).length;
     } else {
       document.getElementById('stat-card-usuarios').style.display = 'none';
     }
@@ -974,7 +974,7 @@ async function cargarInicio() {
 async function cargarDocumentos() {
   try {
     const res = await docsAPI.list();
-    allDocs = res.data || [];
+    allDocs = res.data?.documentos || res.data || [];
     renderDocTable('docs-table-container', allDocs);
   } catch(e) { console.error(e); }
 }
@@ -1026,7 +1026,7 @@ function renderDocTable(containerId, docs, minimal = false) {
 async function cargarUsuarios() {
   try {
     const res = await usersAPI.list();
-    const users = res.data || [];
+    const users = res.data?.usuarios || res.data || [];
     const c = document.getElementById('usuarios-table-container');
     if (!users.length) { c.innerHTML = '<div class="empty-state"><p>Sin usuarios</p></div>'; return; }
     c.innerHTML = `<table>
@@ -1055,7 +1055,7 @@ async function cargarUsuarios() {
 window.cargarBitacora = async () => {
   try {
     const res = await apiFetchRaw('/api/bitacora-list.php');
-    const logs = res.data || [];
+    const logs = res.data?.registros || res.data || [];
     const c = document.getElementById('bitacora-container');
     if (!logs.length) { c.innerHTML = '<div class="empty-state"><p>Sin registros</p></div>'; return; }
     c.innerHTML = logs.map(l => `
@@ -1073,7 +1073,7 @@ window.cargarBitacora = async () => {
 async function cargarInfoClave() {
   try {
     const res = await apiFetchRaw('/api/claves-info.php');
-    const k = res.data;
+    const k = res.data?.clave || res.data;
     if (k) {
       document.getElementById('key-algo').textContent = k.algoritmo || 'ECDSA-P256';
       document.getElementById('key-fingerprint').textContent = k.fingerprint || '—';

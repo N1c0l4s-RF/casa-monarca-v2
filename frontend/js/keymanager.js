@@ -16,7 +16,17 @@
 
 import { mnemonicToSeed, validarMnemonic } from './bip39.js';
 import { p256 } from 'https://esm.sh/@noble/curves@1.4.0/p256';
-import { apiFetch } from './api.js';
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    credentials: 'include',
+    ...options,
+  });
+  const data = res.headers.get('content-type')?.includes('application/json') ? await res.json() : null;
+  if (!res.ok) throw new Error(data?.message || 'Error en la solicitud');
+  return data;
+}
 
 /**
  * Deriva el par de llaves ECDSA P-256 desde un mnemonic BIP39.

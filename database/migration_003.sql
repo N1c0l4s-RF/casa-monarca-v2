@@ -16,17 +16,17 @@ USE casa_monarca;
 
 -- 1. Permitir clave_privada_encriptada vacía (antes era NOT NULL sin default)
 ALTER TABLE usuario_claves
-    MODIFY COLUMN clave_privada_encriptada BLOB NOT NULL DEFAULT '';
+    MODIFY COLUMN clave_privada_encriptada BLOB NULL DEFAULT NULL;
 
 -- 2. Columna algoritmo para distinguir tipo de llave
 ALTER TABLE usuario_claves
-    ADD COLUMN IF NOT EXISTS algoritmo ENUM('RSA-3072','ECDSA-P256') NOT NULL DEFAULT 'ECDSA-P256'
+    ADD COLUMN algoritmo ENUM('RSA-3072','ECDSA-P256') NOT NULL DEFAULT 'ECDSA-P256'
     AFTER version;
 
 -- Marcar llaves existentes (RSA-3072) como legacy
 UPDATE usuario_claves
     SET algoritmo = 'RSA-3072'
-    WHERE clave_privada_encriptada != '';
+    WHERE clave_privada_encriptada IS NOT NULL AND clave_privada_encriptada != '';
 
 -- 3. Tabla firma_sessions: reemplaza $_SESSION para flujo hash → firma
 --    Necesaria en producción con múltiples contenedores Docker

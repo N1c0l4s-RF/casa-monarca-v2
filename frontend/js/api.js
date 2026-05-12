@@ -4,7 +4,7 @@
 
 const BASE = '';
 
-async function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}) {
   const res = await fetch(BASE + path, {
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     credentials: 'include',
@@ -35,6 +35,13 @@ export const documentos = {
   delete: (id) => apiFetch('/api/documentos-delete.php', { method: 'POST', body: JSON.stringify({ id }) }),
   emitir: (id) => apiFetch('/api/documentos-emitir.php', { method: 'POST', body: JSON.stringify({ id }) }),
   revocar: (id, motivo) => apiFetch('/api/documentos-revocar.php', { method: 'POST', body: JSON.stringify({ id, motivo }) }),
+  solicitarFirma: (id) => apiFetch('/api/documentos-solicitar-firma.php', { method: 'POST', body: JSON.stringify({ id }) }),
+  completarFirma: (id, firma) => apiFetch('/api/documentos-completar-firma.php', { method: 'POST', body: JSON.stringify({ id, firma }) }),
+};
+
+// CLAVES BIP39
+export const clavesBip39 = {
+  registrarPublica: (public_key) => apiFetch('/api/claves-registrar-publica.php', { method: 'POST', body: JSON.stringify({ public_key }) }),
 };
 
 // USUARIOS
