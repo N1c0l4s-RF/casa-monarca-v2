@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casa Monarca — Gestión de Llaves</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --surface: #16213e;
+      --card: #0f3460;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--primary);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .card p.desc {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    /* Mnemonic grid */
+    .mnemonic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .mnemonic-word {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .mnemonic-word .num {
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      min-width: 18px;
+    }
+
+    .mnemonic-word .word {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Alert */
+    .alert {
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin: 16px 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    /* Botones */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover { opacity: 0.8; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Textarea mnemonic input */
+    .mnemonic-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px;
+      color: var(--text);
+      font-size: 0.95rem;
+      resize: none;
+      height: 90px;
+      font-family: monospace;
+      line-height: 1.6;
+      margin-top: 4px;
+    }
+
+    .mnemonic-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .mnemonic-input::placeholder { color: var(--muted); }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+      margin-top: 16px;
+    }
+
+    /* Status de la clave */
+    .key-status {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      font-size: 0.85rem;
+    }
+
+    .key-status .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .key-status .label { color: var(--muted); }
+    .key-status .value {
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .badge-ok { background: rgba(34,197,94,0.2); color: #86efac; }
+    .badge-no { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
+    /* Paso a paso */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 0.88rem;
+      color: var(--muted);
+      padding-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* Panel hidden */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <h1>Casa <span>Monarca</span></h1>
+    <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Gestión de llaves criptográficas</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('generar')">Generar llaves</button>
+    <button class="tab" onclick="switchTab('recuperar')">Recuperar llaves</button>
+    <button class="tab" onclick="switchTab('firmar')">Firmar documento</button>
+  </div>
+
+  <!-- ── PANEL: GENERAR ── -->
+  <div class="panel active" id="panel-generar">
+    <div class="card">
+      <h2>Genera tu par de llaves</h2>
+      <p class="desc">
+        Se generarán 12 palabras únicas. Guárdalas en papel o en un lugar seguro fuera de tus dispositivos.
+        Con ellas puedes recuperar tu clave en cualquier momento.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot">1</div>
+          <div class="step-text">Genera las 12 palabras — son tu llave maestra</div>
+        </div>
+        <div class="step">
+          <div class="step-dot">2</div>
+          <div class="step-text">Escríbelas en papel. No las almacenes digitalmente</div>
+        </div>
+        <div class="step">
+          <div class="step-dot">3</div>
+          <div class="step-text">Confirma que las anotaste y registra tu clave pública</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" id="btn-generar" onclick="generarLlaves()">
+        Generar 12 palabras
+      </button>
+
+      <!-- Grid de palabras (oculto hasta generar) -->
+      <div id="mnemonic-display" style="display:none;">
+        <div class="mnemonic-grid" id="mnemonic-grid"></div>
+
+        <div class="alert alert-warning">
+          ⚠️ <span>Escribe estas palabras en papel ahora. Si cierras esta página sin anotarlas, se perderán para siempre.</span>
+        </div>
+
+        <div id="key-preview" class="key-status" style="display:none;">
+          <div class="row">
+            <span class="label">Clave pública</span>
+            <span class="value" id="pub-key-preview">—</span>
+          </div>
+          <div class="row">
+            <span class="label">Estado servidor</span>
+            <span id="server-status"><span class="badge badge-no">No registrada</span></span>
+          </div>
+        </div>
+
+        <label>
+          <input type="checkbox" id="confirm-check" onchange="toggleConfirm()">
+          &nbsp;Confirmé que anoté mis 12 palabras en papel
+        </label>
+
+        <button class="btn btn-primary" id="btn-registrar" disabled onclick="registrarClave()">
+          Registrar clave pública en el servidor
+        </button>
+
+        <div id="msg-generar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: RECUPERAR ── -->
+  <div class="panel" id="panel-recuperar">
+    <div class="card">
+      <h2>Recupera tu clave</h2>
+      <p class="desc">
+        Ingresa tus 12 palabras en orden para regenerar tu par de llaves y registrar de nuevo la clave pública.
+      </p>
+
+      <label>Tus 12 palabras (separadas por espacios)</label>
+      <textarea
+        class="mnemonic-input"
+        id="recovery-input"
+        placeholder="palabra1 palabra2 palabra3 ... palabra12"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      ></textarea>
+
+      <button class="btn btn-primary" onclick="recuperarClave()">
+        Recuperar y re-registrar clave
+      </button>
+
+      <div id="msg-recuperar"></div>
+    </div>
+  </div>
+
+  <!-- ── PANEL: FIRMAR ── -->
+  <div class="panel" id="panel-firmar">
+    <div class="card">
+      <h2>Firmar documento</h2>
+      <p class="desc">
+        Tu clave privada se usa solo en este momento y nunca sale de tu navegador.
+        El servidor solo recibe la firma resultante.
+      </p>
+
+      <label>ID del documento</label>
+      <input
+        type="number"
+        id="doc-id-input"
+        placeholder="Ej: 42"
+        style="width:100%; background:var(--card); border:1px solid rgba(255,255,255,0.1);
+               border-radius:10px; padding:12px; color:var(--text); font-size:0.95rem; margin-top:4px;"
+      >
+
+      <label>Tus 12 palabras</label>
+      <textarea
+        class="mnemonic-input"
+        id="sign-mnemonic"
+        placeholder="palabra1 palabra2 palabra3 ... palabra12"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      ></textarea>
+
+      <button class="btn btn-primary" id="btn-firmar" onclick="firmar()">
+        Firmar documento
+      </button>
+
+      <div id="msg-firmar"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { generarMnemonic, validarMnemonic } from './js/bip39.js';
+  import { derivarLlaves, registrarClavePublica, firmarDocumento } from './js/keymanager.js';
+
+  let mnemonicActual = null;
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  window.switchTab = (tab) => {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ['generar','recuperar','firmar'][i] === tab);
+    });
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel-${tab}`).classList.add('active');
+  };
+
+  // ── Generar llaves ────────────────────────────────────────────────────────
+  window.generarLlaves = async () => {
+    const btn = document.getElementById('btn-generar');
+    btn.innerHTML = '<span class="spinner"></span>Generando...';
+    btn.disabled = true;
+
+    try {
+      mnemonicActual = await generarMnemonic();
+      const palabras = mnemonicActual.split(' ');
+
+      const grid = document.getElementById('mnemonic-grid');
+      grid.innerHTML = palabras.map((p, i) => `
+        <div class="mnemonic-word">
+          <span class="num">${i + 1}.</span>
+          <span class="word">${p}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('mnemonic-display').style.display = 'block';
+
+      // Derivar y mostrar preview de clave pública
+      const { publicKeyHex } = await derivarLlaves(mnemonicActual);
+      document.getElementById('pub-key-preview').textContent = publicKeyHex;
+      document.getElementById('key-preview').style.display = 'block';
+
+      btn.innerHTML = 'Regenerar (borrará las actuales)';
+      btn.disabled = false;
+    } catch (e) {
+      mostrarMensaje('msg-generar', 'error', e.message);
+      btn.innerHTML = 'Generar 12 palabras';
+      btn.disabled = false;
+    }
+  };
+
+  window.toggleConfirm = () => {
+    document.getElementById('btn-registrar').disabled =
+      !document.getElementById('confirm-check').checked;
+  };
+
+  window.registrarClave = async () => {
+    if (!mnemonicActual) return;
+    const btn = document.getElementById('btn-registrar');
+    btn.innerHTML = '<span class="spinner"></span>Registrando...';
+    btn.disabled = true;
+
+    try {
+      const { publicKeyHex } = await derivarLlaves(mnemonicActual);
+      await registrarClavePublica(publicKeyHex);
+
+      document.getElementById('server-status').innerHTML =
+        '<span class="badge badge-ok">Registrada ✓</span>';
+      mostrarMensaje('msg-generar', 'success',
+        'Clave pública registrada. Ya puedes firmar documentos con tus 12 palabras.');
+    } catch (e) {
+      mostrarMensaje('msg-generar', 'error', 'Error al registrar: ' + e.message);
+      btn.innerHTML = 'Registrar clave pública en el servidor';
+      btn.disabled = false;
+    }
+  };
+
+  // ── Recuperar ─────────────────────────────────────────────────────────────
+  window.recuperarClave = async () => {
+    const mnemonic = document.getElementById('recovery-input').value.trim();
+
+    if (!validarMnemonic(mnemonic)) {
+      return mostrarMensaje('msg-recuperar', 'error',
+        'Las palabras no son válidas. Verifica que sean exactamente 12 y estén en el listado BIP39.');
+    }
+
+    try {
+      const { publicKeyHex } = await derivarLlaves(mnemonic);
+      await registrarClavePublica(publicKeyHex);
+      mostrarMensaje('msg-recuperar', 'success',
+        'Clave recuperada y registrada correctamente. Ya puedes firmar documentos.');
+    } catch (e) {
+      mostrarMensaje('msg-recuperar', 'error', 'Error: ' + e.message);
+    }
+  };
+
+  // ── Firmar ────────────────────────────────────────────────────────────────
+  window.firmar = async () => {
+    const docId = parseInt(document.getElementById('doc-id-input').value);
+    const mnemonic = document.getElementById('sign-mnemonic').value.trim();
+
+    if (!docId) return mostrarMensaje('msg-firmar', 'error', 'Ingresa el ID del documento.');
+    if (!validarMnemonic(mnemonic)) return mostrarMensaje('msg-firmar', 'error', 'Mnemonic inválido.');
+
+    const btn = document.getElementById('btn-firmar');
+    btn.innerHTML = '<span class="spinner"></span>Firmando...';
+    btn.disabled = true;
+
+    try {
+      await firmarDocumento(docId, mnemonic);
+      document.getElementById('sign-mnemonic').value = '';
+      mostrarMensaje('msg-firmar', 'success', 'Documento firmado y emitido correctamente.');
+    } catch (e) {
+      mostrarMensaje('msg-firmar', 'error', 'Error al firmar: ' + e.message);
+    } finally {
+      btn.innerHTML = 'Firmar documento';
+      btn.disabled = false;
+    }
+  };
+
+  // ── Helper mensajes ───────────────────────────────────────────────────────
+  function mostrarMensaje(id, tipo, texto) {
+    const el = document.getElementById(id);
+    const iconos = { success: '✅', error: '❌', warning: '⚠️' };
+    el.innerHTML = `
+      <div class="alert alert-${tipo === 'success' ? 'success' : tipo === 'warning' ? 'warning' : 'error'}">
+        ${iconos[tipo]} <span>${texto}</span>
+      </div>`;
+  }
+</script>
+</body>
+</html>
