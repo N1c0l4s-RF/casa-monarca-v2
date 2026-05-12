@@ -76,12 +76,13 @@ export async function firmarDocumento(documentoId, mnemonic) {
     throw new Error('Mnemonic inválido');
   }
 
-  // 1. Solicitar hash al servidor
-  const { data } = await apiFetch('/api/documentos-solicitar-firma.php', {
+  // 1. Solicitar hash al servidor (guarda en firma_sessions DB)
+  const paso1 = await apiFetch('/api/documentos-solicitar-firma.php', {
     method: 'POST',
     body: JSON.stringify({ id: documentoId }),
   });
-  const hashHex = data.hash;
+  const hashHex  = paso1.data.hash;
+  const sessionId = paso1.data.session_id;
 
   // 2. Derivar clave privada desde mnemonic
   const { privateKeyBytes } = await derivarLlaves(mnemonic);
@@ -91,10 +92,10 @@ export async function firmarDocumento(documentoId, mnemonic) {
   const signature = p256.sign(hashBytes, privateKeyBytes);
   const firmaHex = bytesToHex(signature.toCompactRawBytes());
 
-  // 4. Enviar firma al servidor
+  // 4. Enviar firma + session_id al servidor
   return apiFetch('/api/documentos-completar-firma.php', {
     method: 'POST',
-    body: JSON.stringify({ id: documentoId, firma: firmaHex }),
+    body: JSON.stringify({ id: documentoId, firma: firmaHex, session_id: sessionId }),
   });
 }
 

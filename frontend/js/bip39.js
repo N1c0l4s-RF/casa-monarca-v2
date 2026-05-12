@@ -165,16 +165,26 @@ export async function generarMnemonic() {
       }
     }
   }
-  return indices.map(i => WORDLIST[i]).join(' ');
+  // Devuelve palabras sin acentos para que el usuario las pueda escribir fácilmente
+  return indices.map(i => sinAcentos(WORDLIST[i])).join(' ');
 }
+
+// Normaliza a minúsculas sin acentos para comparación tolerante
+function sinAcentos(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// Wordlist normalizada para búsqueda rápida
+const WORDLIST_NORM = WORDLIST.map(sinAcentos);
 
 /**
  * Verifica que todas las palabras del mnemonic existen en el wordlist.
+ * Acepta palabras con o sin acentos.
  */
 export function validarMnemonic(mnemonic) {
-  const palabras = mnemonic.trim().toLowerCase().split(/\s+/);
+  const palabras = mnemonic.trim().split(/\s+/);
   if (palabras.length !== 12) return false;
-  return palabras.every(p => WORDLIST.includes(p));
+  return palabras.every(p => WORDLIST_NORM.includes(sinAcentos(p)));
 }
 
 /**
@@ -183,7 +193,8 @@ export function validarMnemonic(mnemonic) {
  */
 export async function mnemonicToSeed(mnemonic) {
   const encoder = new TextEncoder();
-  const mnemonicNFKD = mnemonic.trim().toLowerCase().normalize('NFKD');
+  // Normalizar a sin acentos para que "abaco" y "ábaco" produzcan el mismo seed
+  const mnemonicNFKD = mnemonic.trim().split(/\s+/).map(sinAcentos).join(' ');
 
   const baseKey = await crypto.subtle.importKey(
     'raw',

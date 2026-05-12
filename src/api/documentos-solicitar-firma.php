@@ -1,15 +1,9 @@
 <?php
 /**
  * POST /api/documentos-solicitar-firma.php
- *
- * Paso 1 del flujo de emisión client-side:
- *   - Valida que el documento es borrador y pertenece al usuario
- *   - Calcula SHA-256(folio|contenido) y lo devuelve al browser
- *   - El browser firma ese hash localmente con ECDSA P-256
- *   - El hash se guarda temporalmente en sesión para validarlo en paso 2
- *
+ * Paso 1: calcula SHA-256(folio|contenido) y lo guarda en firma_sessions (DB).
  * Body: { "id": 42 }
- * Response: { "hash": "hex_sha256..." }
+ * Response: { "hash": "hex_sha256...", "session_id": N }
  */
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../modules/bitacora.php';
@@ -24,7 +18,7 @@ $docId = (int)($body['id'] ?? 0);
 if (!$docId) jsonError('id es requerido');
 
 $pdo  = getDB();
-$stmt = $pdo->prepare('SELECT id, folio, contenido, estado, creado_por FROM documentos WHERE id = ?');
+$stmt = $pdo->prepare('SELECT id, folio, contenido, estado FROM documentos WHERE id = ?');
 $stmt->execute([$docId]);
 $doc = $stmt->fetch();
 
@@ -38,24 +32,25 @@ if (!$clave->fetch()) {
     jsonError('No tienes una clave pública registrada. Ve a Gestión de Llaves primero.', 422);
 }
 
-// Calcular hash del contenido a firmar: SHA-256(folio|contenido)
-// Este es el mismo string que se verificará en completar-firma y en verificación pública
+// Calcular hash
 $contenidoAFirmar = $doc['folio'] . '|' . $doc['contenido'];
 $hashHex = hash('sha256', $contenidoAFirmar);
 
-// Guardar hash en sesión con TTL de 10 minutos para validarlo en paso 2
-// Evita que el browser envíe una firma sobre un hash diferente
-startSecureSession();
-$_SESSION['firma_pendiente'] = [
-    'doc_id'    => $docId,
-    'hash'      => $hashHex,
-    'usuario_id'=> $user['id'],
-    'expires_at'=> time() + 600,
-];
-session_write_close();
+// Guardar en firma_sessions (válida 10 minutos)
+// Limpiar sesiones previas del mismo usuario+documento
+$pdo->prepare('DELETE FROM firma_sessions WHERE usuario_id = ? AND documento_id = ?')
+    ->execute([$user['id'], $docId]);
+
+$ins = $pdo->prepare('
+    INSERT INTO firma_sessions (usuario_id, documento_id, hash_hex, expires_at)
+    VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+');
+$ins->execute([$user['id'], $docId, $hashHex]);
+$sessionId = $pdo->lastInsertId();
 
 jsonSuccess('Hash listo para firmar', [
-    'hash'      => $hashHex,
-    'folio'     => $doc['folio'],
-    'algoritmo' => 'ECDSA P-256 + SHA-256',
+    'hash'       => $hashHex,
+    'session_id' => (int)$sessionId,
+    'folio'      => $doc['folio'],
+    'algoritmo'  => 'ECDSA P-256 + SHA-256',
 ]);
