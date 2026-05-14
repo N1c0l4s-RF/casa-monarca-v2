@@ -42,21 +42,23 @@ function listarDocumentos(int $usuarioId, string $rol): array {
 
     if (in_array($rol, ['administrador', 'supervisor', 'verificador'], true)) {
         $stmt = $pdo->prepare('
-            SELECT d.*, u.nombre as creador_nombre
+            SELECT d.*, u.nombre as creador_nombre, f.nombre as firmado_por_nombre
             FROM documentos d
             JOIN usuarios u ON u.id = d.creado_por
+            LEFT JOIN usuarios f ON f.id = d.firmado_por_usuario_id
             ORDER BY d.fecha_creacion DESC
         ');
         $stmt->execute();
     } else {
         $stmt = $pdo->prepare('
-            SELECT d.*, u.nombre as creador_nombre
+            SELECT d.*, u.nombre as creador_nombre, f.nombre as firmado_por_nombre
             FROM documentos d
             JOIN usuarios u ON u.id = d.creado_por
-            WHERE d.creado_por = ?
+            LEFT JOIN usuarios f ON f.id = d.firmado_por_usuario_id
+            WHERE d.creado_por = ? OR d.firmado_por_usuario_id = ?
             ORDER BY d.fecha_creacion DESC
         ');
-        $stmt->execute([$usuarioId]);
+        $stmt->execute([$usuarioId, $usuarioId]);
     }
 
     return $stmt->fetchAll();

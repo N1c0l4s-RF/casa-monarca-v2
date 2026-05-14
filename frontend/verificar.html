@@ -265,7 +265,17 @@
 <p class="back-link"><a href="index.html">← Acceso institucional</a></p>
 
 <script type="module">
-  import { api } from './js/api.js';
+  async function apiFetch(path) {
+    const base = (location.protocol === 'file:' || location.origin === 'null') ? 'http://localhost:8080' : location.origin;
+    const res = await fetch(base + path, { credentials: 'include' });
+    const data = res.headers.get('content-type')?.includes('application/json') ? await res.json() : null;
+    if (!res.ok) throw new Error(data?.message || 'Error en la solicitud');
+    return data;
+  }
+
+  function esc(s) {
+    return String(s ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
   function fmt(dt) {
     if (!dt) return '—';
@@ -283,41 +293,49 @@
     resultEl.innerHTML = '';
 
     try {
-      const res = await api.get(`/api/documentos-verificar.php?folio=${encodeURIComponent(folio)}`);
+      const res = await apiFetch(`/api/documentos-verificar.php?folio=${encodeURIComponent(folio)}`);
 
-      if (res.valido) {
-        const d = res.documento;
+      if (res.data?.valido) {
+        const d = res.data.documento;
         resultEl.innerHTML = `
           <div class="result-valid">
             <div class="status-badge">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              FIRMA VÁLIDA
+              DOCUMENTO VÁLIDO
             </div>
             <div class="doc-grid">
               <div class="doc-field">
                 <label>Folio</label>
-                <div class="val">${d.folio}</div>
+                <div class="val">${esc(d.folio)}</div>
               </div>
               <div class="doc-field">
                 <label>Estado</label>
-                <div class="val">${d.estado}</div>
+                <div class="val">${esc(d.estado)}</div>
+              </div>
+              <div class="doc-field full">
+                <label>Título</label>
+                <div class="val">${esc(d.titulo)}</div>
               </div>
               <div class="doc-field">
-                <label>Emisor</label>
-                <div class="val">${d.emisor || '—'}</div>
+                <label>Creado por</label>
+                <div class="val">${esc(d.creador)}</div>
+              </div>
+              <div class="doc-field">
+                <label>Firmado por</label>
+                <div class="val">${esc(d.emisor)}</div>
               </div>
               <div class="doc-field">
                 <label>Fecha de emisión</label>
                 <div class="val">${fmt(d.fecha_emision)}</div>
               </div>
-              <div class="doc-field full">
-                <label>Tipo de documento</label>
-                <div class="val">${d.tipo_documento || '—'}</div>
+              <div class="doc-field">
+                <label>Algoritmo</label>
+                <div class="val">${esc(d.algoritmo)}</div>
               </div>
               ${d.firma ? `
               <div class="doc-field full sig-section">
                 <div class="sig-label">Firma ECDSA P-256 (hex)</div>
-                <div class="sig-hex">${d.firma}</div>
+                <div class="sig-hex">${esc(d.firma)}</div>
               </div>` : ''}
             </div>
           </div>`;
@@ -328,7 +346,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               NO ENCONTRADO
             </div>
-            <p>${res.mensaje || 'El folio ingresado no corresponde a ningún documento emitido.'}</p>
+            <p>${esc(res.data?.mensaje || res.message || 'El folio ingresado no corresponde a ningún documento emitido.')}</p>
           </div>`;
       }
     } catch (err) {
@@ -338,7 +356,7 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             ERROR
           </div>
-          <p>${err.message || 'No se pudo conectar con el servidor.'}</p>
+          <p>${esc(err.message) || 'No se pudo conectar con el servidor.'}</p>
         </div>`;
     } finally {
       btn.disabled = false;

@@ -24,6 +24,9 @@ $doc = $stmt->fetch();
 
 if (!$doc) jsonError('Documento no encontrado', 404);
 if ($doc['estado'] !== 'borrador') jsonError('Solo se pueden emitir documentos en borrador', 400);
+if ((int)$doc['creado_por'] === (int)$user['id'] && $user['rol'] !== 'administrador') {
+    jsonError('No puedes firmar tu propio documento. Debe ser firmado por un usuario diferente al creador.', 403);
+}
 
 // Verificar que el usuario tiene clave pública registrada
 $clave = $pdo->prepare('SELECT fingerprint FROM usuario_claves WHERE usuario_id = ? AND activo = 1');

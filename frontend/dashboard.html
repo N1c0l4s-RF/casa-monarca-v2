@@ -51,15 +51,10 @@
       gap: 10px;
     }
 
-    .sidebar-brand-icon {
-      width: 34px; height: 34px;
-      background: var(--green);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+    .sidebar-brand-logo {
+      width: 38px; height: 32px;
       flex-shrink: 0;
     }
-
-    .sidebar-brand-icon svg { width: 20px; height: 20px; color: #022c22; }
 
     .sidebar-brand-name {
       font-family: var(--ff-head);
@@ -431,6 +426,46 @@
     .step-panel { display: none; }
     .step-panel.active { display: block; }
 
+    /* ── MNEMONIC INPUT GRID ── */
+    .mnemonic-input-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .mnemonic-input-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      transition: border-color 0.15s;
+    }
+    .mnemonic-input-cell:focus-within {
+      border-color: var(--green);
+      box-shadow: 0 0 0 2px rgba(34,197,94,0.12);
+    }
+    .mnemonic-input-cell .mnemonic-num {
+      font-family: var(--ff-head);
+      font-size: 0.68rem;
+      color: var(--green);
+      min-width: 16px;
+      flex-shrink: 0;
+    }
+    .mnemonic-input-cell input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--ff-head);
+      font-size: 0.82rem;
+      width: 100%;
+      min-width: 0;
+    }
+    .mnemonic-input-cell input::placeholder { color: var(--muted2); }
+
     /* ── SPINNER ── */
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 5px; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -480,9 +515,7 @@
 
 <!-- Loading -->
 <div id="loading">
-  <div class="loading-icon">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  </div>
+  <img src="assets/logo.svg" alt="Casa Monarca" style="width:64px;height:54px;margin-bottom:4px">
   <p>Verificando sesión…</p>
 </div>
 
@@ -495,9 +528,7 @@
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="sidebar-brand-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    </div>
+    <img src="assets/logo.svg" alt="Casa Monarca" class="sidebar-brand-logo">
     <div class="sidebar-brand-name">Casa <span>Monarca</span></div>
   </div>
 
@@ -728,7 +759,7 @@
           </p>
           <div class="form-group">
             <label class="form-label">Tus 12 palabras</label>
-            <textarea class="form-textarea" id="recover-words" placeholder="palabra1 palabra2 … palabra12" style="font-family:var(--ff-head);font-size:0.82rem;height:80px" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+            <div class="mnemonic-input-grid" id="recover-words-grid"></div>
           </div>
           <button class="btn btn-primary" onclick="recuperarClaveUI()" style="width:100%">Recuperar y re-registrar</button>
           <div id="key-recover-msg"></div>
@@ -745,7 +776,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Tus 12 palabras</label>
-            <textarea class="form-textarea" id="sign-words" placeholder="palabra1 palabra2 … palabra12" style="font-family:var(--ff-head);font-size:0.82rem;height:80px" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+            <div class="mnemonic-input-grid" id="sign-words-grid"></div>
           </div>
           <button class="btn btn-primary" onclick="firmarDocUI()" style="width:100%">Firmar y emitir documento</button>
           <div id="key-sign-msg"></div>
@@ -801,13 +832,18 @@
         Tu clave privada se usa solo aquí y nunca sale de tu navegador. El servidor solo recibe la firma resultante.
       </div>
       <div id="emit-doc-info" style="background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:0.85rem">
-        <div style="color:var(--muted);font-size:0.75rem;margin-bottom:4px">DOCUMENTO A FIRMAR</div>
+        <div style="color:var(--muted);font-size:0.75rem;margin-bottom:6px;letter-spacing:0.05em">DOCUMENTO A FIRMAR</div>
         <div id="emit-doc-titulo" style="font-weight:600"></div>
         <div id="emit-doc-folio" style="font-family:var(--ff-head);font-size:0.75rem;color:var(--muted);margin-top:2px"></div>
+        <div id="emit-doc-creador" style="font-size:0.76rem;color:var(--amber);margin-top:6px"></div>
+      </div>
+      <div class="alert alert-warning" style="margin-bottom:16px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        El firmante debe ser una persona diferente al creador del documento.
       </div>
       <div class="form-group">
         <label class="form-label">Tus 12 palabras (frase BIP39)</label>
-        <textarea class="form-textarea" id="emit-words" placeholder="palabra1 palabra2 … palabra12" style="font-family:var(--ff-head);font-size:0.82rem;height:80px" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        <div class="mnemonic-input-grid" id="emit-words-grid"></div>
       </div>
       <div id="emit-msg"></div>
     </div>
@@ -999,25 +1035,49 @@ function renderDocTable(containerId, docs, minimal = false) {
 
   c.innerHTML = `<table>
     <thead><tr>
-      <th>Folio</th><th>Título</th><th>Estado</th><th>Creado</th>
+      <th>Folio</th><th>Título</th><th>Estado</th>
+      <th>Creado por</th><th>Firmado por</th>
       ${!minimal ? '<th>Acciones</th>' : ''}
     </tr></thead>
     <tbody>
-      ${docs.map(d => `
+      ${docs.map(d => {
+        const esMiDoc   = (parseInt(d.creado_por) === currentUser.id);
+        const adminExento = currentUser.rol === 'administrador';
+        const puedeEmitir = d.estado === 'borrador' && canEmit && (!esMiDoc || adminExento);
+        const bloqueado   = d.estado === 'borrador' && canEmit && esMiDoc && !adminExento;
+        return `
         <tr>
           <td class="folio-cell">${d.folio || '—'}</td>
-          <td><strong>${escHtml(d.titulo)}</strong>${d.descripcion ? `<div style="font-size:0.76rem;color:var(--muted);margin-top:2px">${escHtml(d.descripcion.slice(0,60))}${d.descripcion.length>60?'…':''}</div>` : ''}</td>
+          <td>
+            <strong>${escHtml(d.titulo)}</strong>
+            ${d.descripcion ? `<div style="font-size:0.76rem;color:var(--muted);margin-top:2px">${escHtml(d.descripcion.slice(0,60))}${d.descripcion.length>60?'…':''}</div>` : ''}
+          </td>
           <td><span class="badge badge-${d.estado}">${d.estado}</span></td>
-          <td style="color:var(--muted);font-size:0.8rem">${fmtDate(d.fecha_creacion)}</td>
+          <td style="font-size:0.82rem">
+            <span style="color:${esMiDoc?'var(--green)':'var(--text)'}">
+              ${escHtml(d.creador_nombre || '—')}
+            </span>
+            <div style="font-size:0.72rem;color:var(--muted2)">${fmtDate(d.fecha_creacion)}</div>
+          </td>
+          <td style="font-size:0.82rem">
+            ${d.firmado_por_nombre
+              ? `<span>${escHtml(d.firmado_por_nombre)}</span><div style="font-size:0.72rem;color:var(--muted2)">${fmtDate(d.fecha_emision)}</div>`
+              : `<span style="color:var(--muted2)">Pendiente</span>`}
+          </td>
           ${!minimal ? `<td><div class="actions-cell">
-            ${d.estado === 'borrador' && canEmit ? `<button class="btn btn-primary btn-sm" onclick="openModalEmitir(${d.id},'${escHtml(d.titulo)}','${d.folio||''}')">
+            ${puedeEmitir ? `<button class="btn btn-primary btn-sm" onclick="openModalEmitir(${d.id},'${escHtml(d.titulo)}','${d.folio||''}','${escHtml(d.creador_nombre||'')}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              Emitir
+              Firmar
             </button>` : ''}
+            ${bloqueado ? `<span title="No puedes firmar tu propio documento" style="font-size:0.75rem;color:var(--muted2);display:flex;align-items:center;gap:4px;cursor:default">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Tu doc
+            </span>` : ''}
             ${d.estado === 'emitido' && canRevoke ? `<button class="btn btn-danger btn-sm" onclick="openModalRevocar(${d.id})">Revocar</button>` : ''}
             ${d.estado === 'emitido' ? `<a href="verificar.html?folio=${d.folio}" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration:none">Verificar</a>` : ''}
           </div></td>` : ''}
-        </tr>`).join('')}
+        </tr>`;
+      }).join('')}
     </tbody>
   </table>`;
 }
@@ -1085,10 +1145,58 @@ async function cargarInfoClave() {
   } catch(e) {}
 }
 
+// ── Mnemonic input grid helpers ────────────────────────────────────────────
+function buildMnemonicGrid(containerId) {
+  const grid = document.getElementById(containerId);
+  if (!grid || grid.children.length === 12) return;
+  grid.innerHTML = Array.from({length:12}, (_,i) => `
+    <div class="mnemonic-input-cell">
+      <span class="mnemonic-num">${i+1}.</span>
+      <input type="text" inputmode="text" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" placeholder="palabra"
+             data-idx="${i}" data-grid="${containerId}">
+    </div>`).join('');
+
+  grid.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      const idx = +inp.dataset.idx;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        const next = grid.querySelector(`input[data-idx="${idx+1}"]`);
+        if (next) next.focus();
+      } else if (e.key === 'Backspace' && inp.value === '') {
+        e.preventDefault();
+        const prev = grid.querySelector(`input[data-idx="${idx-1}"]`);
+        if (prev) { prev.focus(); prev.value = ''; }
+      }
+    });
+    inp.addEventListener('paste', e => {
+      e.preventDefault();
+      const words = (e.clipboardData.getData('text') || '').trim().split(/\s+/);
+      const inputs = grid.querySelectorAll('input');
+      const start  = +inp.dataset.idx;
+      words.forEach((w, i) => { if (inputs[start+i]) inputs[start+i].value = w; });
+      const nextEmpty = grid.querySelector(`input[data-idx="${start+words.length}"]`);
+      if (nextEmpty) nextEmpty.focus();
+    });
+  });
+}
+
+function getMnemonicFromGrid(containerId) {
+  const grid = document.getElementById(containerId);
+  return Array.from(grid.querySelectorAll('input')).map(i => i.value.trim()).join(' ');
+}
+
+function clearMnemonicGrid(containerId) {
+  document.getElementById(containerId)?.querySelectorAll('input').forEach(i => i.value = '');
+}
+
 window.switchKeyStep = (step) => {
   document.querySelectorAll('.step-tab').forEach((t,i) => t.classList.toggle('active', ['generar','recuperar','firmar'][i] === step));
   document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`key-step-${step}`).classList.add('active');
+  if (step === 'recuperar') buildMnemonicGrid('recover-words-grid');
+  if (step === 'firmar')    buildMnemonicGrid('sign-words-grid');
 };
 
 window.generarMnemonicUI = async () => {
@@ -1127,7 +1235,7 @@ window.registrarClaveUI = async () => {
 };
 
 window.recuperarClaveUI = async () => {
-  const words = document.getElementById('recover-words').value.trim();
+  const words = getMnemonicFromGrid('recover-words-grid');
   if (!validarMnemonic(words)) {
     document.getElementById('key-recover-msg').innerHTML = `<div class="alert alert-error" style="margin-top:12px">Mnemonic inválido. Verifica las 12 palabras.</div>`;
     return;
@@ -1145,7 +1253,7 @@ window.recuperarClaveUI = async () => {
 
 window.firmarDocUI = async () => {
   const docId = parseInt(document.getElementById('sign-doc-id').value);
-  const words  = document.getElementById('sign-words').value.trim();
+  const words  = getMnemonicFromGrid('sign-words-grid');
   if (!docId) return;
   if (!validarMnemonic(words)) {
     document.getElementById('key-sign-msg').innerHTML = `<div class="alert alert-error" style="margin-top:12px">Mnemonic inválido.</div>`;
@@ -1166,12 +1274,14 @@ window.firmarDocUI = async () => {
 window.openModalNuevoDoc  = () => openModal('modal-nuevo-doc');
 window.openModalNuevoUsuario = () => openModal('modal-nuevo-usuario');
 
-window.openModalEmitir = (id, titulo, folio) => {
+window.openModalEmitir = (id, titulo, folio, creadorNombre) => {
   docToEmit = id;
   document.getElementById('emit-doc-titulo').textContent = titulo;
   document.getElementById('emit-doc-folio').textContent  = folio;
-  document.getElementById('emit-words').value = '';
+  document.getElementById('emit-doc-creador').textContent = `Creado por: ${creadorNombre}`;
   document.getElementById('emit-msg').innerHTML = '';
+  buildMnemonicGrid('emit-words-grid');
+  clearMnemonicGrid('emit-words-grid');
   openModal('modal-emitir');
 };
 
@@ -1182,7 +1292,7 @@ window.openModalRevocar = (id) => {
 };
 
 window.confirmarEmision = async () => {
-  const words = document.getElementById('emit-words').value.trim();
+  const words = getMnemonicFromGrid('emit-words-grid');
   if (!validarMnemonic(words)) {
     document.getElementById('emit-msg').innerHTML = `<div class="alert alert-error">Mnemonic inválido.</div>`;
     return;

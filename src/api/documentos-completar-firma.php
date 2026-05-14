@@ -52,6 +52,9 @@ $doc = $stmt->fetch();
 
 if (!$doc)                         jsonError('Documento no encontrado', 404);
 if ($doc['estado'] !== 'borrador') jsonError('Solo se pueden emitir borradores', 400);
+if ((int)$doc['creado_por'] === (int)$user['id'] && $user['rol'] !== 'administrador') {
+    jsonError('No puedes firmar tu propio documento. Se requiere un firmante diferente al creador.', 403);
+}
 
 $contenidoAFirmar = $doc['folio'] . '|' . $doc['contenido'];
 
